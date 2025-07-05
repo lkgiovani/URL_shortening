@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
-	"url_shortening/environment"
+
+	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
-	"url_shortening/infra/http"
+	"url_shortening/internal/delivery/http"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
@@ -29,7 +30,12 @@ func main() {
 
 	app := fiber.New()
 
-	http.NewServer(app)
+	server, err := http.NewServer(app, db)
+	if err != nil {
+		panic(fmt.Errorf("error new server: %w", err))
+	}
+
+	server.Router()
 
 	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", config.HTTP.Url, config.HTTP.Port)))
 }
