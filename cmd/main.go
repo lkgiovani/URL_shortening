@@ -6,7 +6,8 @@ import (
 
 	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
-	"url_shortening/internal/delivery/http"
+	"url_shortening/infra/db/redis"
+	"url_shortening/internal/delivery/httpserver"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
@@ -28,9 +29,14 @@ func main() {
 		panic(fmt.Errorf("error new postgres: %w", err))
 	}
 
+	redis, err := redis.NewRedis(config)
+	if err != nil {
+		panic(fmt.Errorf("error new redis: %w", err))
+	}
+
 	app := fiber.New()
 
-	server, err := http.NewServer(app, db)
+	server, err := httpserver.NewServer(app, db, redis, config)
 	if err != nil {
 		panic(fmt.Errorf("error new server: %w", err))
 	}

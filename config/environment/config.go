@@ -13,6 +13,10 @@ type Config struct {
 	DB struct {
 		DataSource string
 	}
+	URL_SHORTENED_PREFIX string
+	REDIS                struct {
+		Address string
+	}
 }
 
 func NewConfig() (*Config, error) {
@@ -32,6 +36,16 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
+	urlShortenedPrefix, err := getString("URL_SHORTENED_PREFIX", "Error loading URL Shortened Prefix")
+	if err != nil {
+		return nil, err
+	}
+
+	redisAddress, err := getString("REDIS_ADDRESS", "Error loading Redis Address")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
 		HTTP: struct {
 			Url  string
@@ -44,6 +58,12 @@ func NewConfig() (*Config, error) {
 			DataSource string
 		}{
 			DataSource: dbDataSource,
+		},
+		URL_SHORTENED_PREFIX: urlShortenedPrefix,
+		REDIS: struct {
+			Address string
+		}{
+			Address: redisAddress,
 		},
 	}, nil
 }
