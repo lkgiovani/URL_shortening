@@ -1,0 +1,1 @@
+ALTER TABLE url_shortening ADD COLUMN slug varchar(255) NOT NULL UNIQUE;
