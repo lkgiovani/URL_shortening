@@ -2,6 +2,7 @@ package urlShortening
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"url_shortening/config/environment"
@@ -19,15 +20,26 @@ type RegisterRequest struct {
 
 func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) error {
 
-	validate := validator.New()
 	body := c.Body()
 
 	var request RegisterRequest
 
-	err := validate.Struct(request)
+	err := json.Unmarshal(body, &request)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Invalid JSON",
+		})
+	}
+
+	validate := validator.New()
+
+	// Validate the User struct
+	err = validate.Struct(request)
+	if err != nil {
+		// Validation failed, handle the error
+		errors := err.(validator.ValidationErrors)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fmt.Sprintf("Validation error: %s", errors),
 		})
 	}
 
