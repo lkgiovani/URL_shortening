@@ -4,9 +4,10 @@ import (
 	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"
+	"url_shortening/internal/useCase/auth"
 	"url_shortening/internal/useCase/urlShortening"
 
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 )
 
 type Server struct {
@@ -22,15 +23,23 @@ func NewServer(app *fiber.App, db *postgres.Postgres, redis *redis.Redis, config
 }
 
 func (s *Server) Router() {
-	s.App.Get("/", func(c fiber.Ctx) error {
+	s.App.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World 👋!")
 	})
 
-	s.App.Post("/url/register", func(c fiber.Ctx) error {
+	s.App.Post("/url/register", func(c *fiber.Ctx) error {
 		return urlShortening.Register(c, s.Db, s.Redis, s.Config) // TODO: change to useCase
 	})
 
-	s.App.Get("/:urlShortened", func(c fiber.Ctx) error {
+	s.App.Get("/:urlShortened", func(c *fiber.Ctx) error {
 		return urlShortening.GetUrl(c, s.Db, s.Redis, s.Config)
+	})
+
+	s.App.Post("/auth/register", func(c *fiber.Ctx) error {
+		return auth.Register(c, s.Db, s.Redis, s.Config)
+	})
+
+	s.App.Post("/auth/login", func(c *fiber.Ctx) error {
+		return auth.Login(c, s.Db, s.Redis, s.Config)
 	})
 }
