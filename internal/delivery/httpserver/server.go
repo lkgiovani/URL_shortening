@@ -21,44 +21,56 @@ type Server struct {
 }
 
 func NewServer(app *fiber.App, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) (*Server, error) {
-
-	app.Use("/auth", limiter.New(
-		limiter.Config{
-			Max:        20,
-			Expiration: 1 * time.Minute,
-		},
-	))
-
-	app.Use("/url/register", limiter.New(
-		limiter.Config{
-			Max:        100,
-			Expiration: 1 * time.Minute,
-		},
-	))
-
 	return &Server{App: app, Db: db, Redis: redis, Config: config}, nil
 }
 
+// URL handlers
+func (s *Server) handleURLRegister(c *fiber.Ctx) error {
+	return urlShortening.Register(c, s.Db, s.Redis, s.Config)
+}
+
+func (s *Server) handleURLGet(c *fiber.Ctx) error {
+	return urlShortening.GetUrl(c, s.Db, s.Redis, s.Config)
+}
+
+// Auth handlers
+func (s *Server) handleAuthRegister(c *fiber.Ctx) error {
+	return auth.Register(c, s.Db, s.Redis, s.Config)
+}
+
+func (s *Server) handleAuthLogin(c *fiber.Ctx) error {
+	return auth.Login(c, s.Db, s.Redis, s.Config)
+}
+
+// Home handler
+func (s *Server) handleHome(c *fiber.Ctx) error {
+	return c.SendString("salve! 🤙")
+}
+
 func (s *Server) Router() {
-	s.App.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("salve! 🤙")
-	})
+	// Home
+	s.App.Get("/", s.handleHome)
 
-	s.App.Post("/url/register", func(c *fiber.Ctx) error {
+	authGroup := s.App.Group("/auth")
+
+	authGroup.Use(limiter.New(limiter.Config{
+		Max:        20,
+		Expiration: 1 * time.Minute,
+	}))
+
+	authGroup.Post("/register", s.handleAuthRegister)
+	authGroup.Post("/login", s.handleAuthLogin)
+
+	// Só para /url/register
+	s.App.Use("/register", limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 1 * time.Minute,
+	}))
+
+	s.App.Use("/register", func(c *fiber.Ctx) error {
 		return middleware.AuthMiddleware(c, s.Config)
-	}, func(c *fiber.Ctx) error {
-		return urlShortening.Register(c, s.Db, s.Redis, s.Config) // TODO: change to useCase
 	})
 
-	s.App.Get("/:urlShortened", func(c *fiber.Ctx) error {
-		return urlShortening.GetUrl(c, s.Db, s.Redis, s.Config)
-	})
-
-	s.App.Post("/auth/register", func(c *fiber.Ctx) error {
-		return auth.Register(c, s.Db, s.Redis, s.Config)
-	})
-
-	s.App.Post("/auth/login", func(c *fiber.Ctx) error {
-		return auth.Login(c, s.Db, s.Redis, s.Config)
-	})
+	s.App.Post("/register", s.handleURLRegister)
+	s.App.Get("/:urlShortened", s.handleURLGet)
 }
