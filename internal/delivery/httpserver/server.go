@@ -4,6 +4,7 @@ import (
 	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"
+	"url_shortening/internal/delivery/httpserver/middleware"
 	"url_shortening/internal/useCase/auth"
 	"url_shortening/internal/useCase/urlShortening"
 
@@ -28,6 +29,8 @@ func (s *Server) Router() {
 	})
 
 	s.App.Post("/url/register", func(c *fiber.Ctx) error {
+		return middleware.AuthMiddleware(c, s.Config)
+	}, func(c *fiber.Ctx) error {
 		return urlShortening.Register(c, s.Db, s.Redis, s.Config) // TODO: change to useCase
 	})
 
