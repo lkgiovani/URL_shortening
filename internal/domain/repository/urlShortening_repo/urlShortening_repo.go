@@ -1,7 +1,6 @@
 package urlShortening_repo
 
 import (
-	"fmt"
 	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
 
@@ -31,8 +30,6 @@ func (r *UrlShorteningRepository) RegisterUrl(url *string, idUser string) (UrlOr
 	}
 
 	urlShortened := r.config.URL_SHORTENED_PREFIX + "/" + uniqueID.String()[len(uniqueID.String())-8:]
-
-	fmt.Println(urlShortened)
 
 	query := `SELECT url_original, url_shortened, slug FROM url_shortening WHERE id_user = $1 AND url_original = $2`
 	response, err := r.db.Db.Raw(query, idUser, *url).Rows()
@@ -69,7 +66,6 @@ func (r *UrlShorteningRepository) RegisterUrl(url *string, idUser string) (UrlOr
 
 func (r *UrlShorteningRepository) GetUrl(urlShortened string) (UrlOriginal, error) {
 
-	fmt.Println(urlShortened)
 	query := `SELECT url_original, url_shortened, slug FROM url_shortening WHERE url_shortened = $1 LIMIT 1`
 	response, err := r.db.Db.Raw(query, urlShortened).Rows()
 	if err != nil {
