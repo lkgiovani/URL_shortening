@@ -48,14 +48,11 @@ func (r *UrlShorteningRepository) RegisterUrl(url *string, idUser string) (UrlOr
 
 	var urlOriginal UrlOriginal
 
-	fmt.Println(response)
 	if response.Next() {
 		err = response.Scan(&urlOriginal.UrlOriginal, &urlOriginal.UrlShortened, &urlOriginal.Slug)
 		if err != nil {
 			return UrlOriginal{}, err
 		}
-
-		fmt.Println(urlOriginal)
 
 		return urlOriginal, nil
 	}

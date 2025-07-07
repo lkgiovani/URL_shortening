@@ -8,7 +8,6 @@ import (
 	"sort"
 	"url_shortening/infra/config/environment"
 
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -49,8 +48,6 @@ func (p *Postgres) migrate() error {
 		return err
 	}
 	sort.Strings(names)
-
-	fmt.Println(names)
 
 	for _, name := range names {
 		if err := p.migrateFile(name); err != nil {
