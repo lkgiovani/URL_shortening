@@ -9,3 +9,4 @@ CREATE TABLE url_shortening (
   
   FOREIGN KEY (id_user) REFERENCES users(id)
 );
+

@@ -2,6 +2,7 @@ package urlShortening
 
 import (
 	"encoding/json"
+	"time"
 
 	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
@@ -29,14 +30,14 @@ func Register(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *en
 
 	repository := urlShortening.NewUrlShorteningRepository(db, config)
 
-	urlShortened, slug, err := repository.RegisterUrl(&request.Url)
+	urlShortened, err := repository.RegisterUrl(&request.Url)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to register url",
+			"error": err.Error(),
 		})
 	}
 
-	err = redis.Set(slug[:8], request.Url, 0)
+	err = redis.Set(urlShortened.Slug, request.Url, 3*time.Minute)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to set url in redis",
@@ -44,18 +45,31 @@ func Register(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *en
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": urlShortened,
+		"message": urlShortened.UrlShortened,
 	})
 }
 
 func GetUrl(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) error {
-
 	urlShortened := c.Params("urlShortened")
 
 	url, err := redis.Get(urlShortened)
+	if err == nil {
+		c.Redirect().Status(302).To(url)
+		return nil
+	}
+
+	repository := urlShortening.NewUrlShorteningRepository(db, config)
+	urlOriginal, err := repository.GetUrl(urlShortened)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "URL not found",
+		})
+	}
+
+	err = redis.Set(urlOriginal.Slug, urlOriginal.UrlOriginal, 3*time.Minute)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to set url in redis",
 		})
 	}
 
