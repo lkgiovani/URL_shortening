@@ -13,6 +13,14 @@ type UrlOriginal struct {
 	Slug         string `gorm:"column:slug"`
 }
 
+type UrlListItem struct {
+	ID           string `gorm:"column:id"`
+	UrlOriginal  string `gorm:"column:url_original"`
+	UrlShortened string `gorm:"column:url_shortened"`
+	Slug         string `gorm:"column:slug"`
+	CreatedAt    string `gorm:"column:created_at"`
+}
+
 type UrlShorteningRepository struct {
 	db     *postgres.Postgres
 	config *environment.Config
@@ -66,7 +74,7 @@ func (r *UrlShorteningRepository) RegisterUrl(url *string, idUser string) (UrlOr
 
 func (r *UrlShorteningRepository) GetUrl(urlShortened string) (UrlOriginal, error) {
 
-	query := `SELECT url_original, url_shortened, slug FROM url_shortening WHERE url_shortened = $1 LIMIT 1`
+	query := `SELECT url_original, url_shortened, slug FROM url_shortening WHERE slug = $1 LIMIT 1`
 	response, err := r.db.Db.Raw(query, urlShortened).Rows()
 	if err != nil {
 		return UrlOriginal{}, err
@@ -84,4 +92,31 @@ func (r *UrlShorteningRepository) GetUrl(urlShortened string) (UrlOriginal, erro
 	defer response.Close()
 
 	return urlOriginal, nil
+}
+
+func (r *UrlShorteningRepository) GetUserUrls(idUser string) ([]UrlListItem, error) {
+	query := `SELECT id, url_original, url_shortened, slug, created_at FROM url_shortening WHERE id_user = $1 ORDER BY created_at DESC`
+
+	rows, err := r.db.Db.Raw(query, idUser).Rows()
+	if err != nil {
+		return []UrlListItem{}, err
+	}
+	defer rows.Close()
+
+	var urls []UrlListItem
+	for rows.Next() {
+		var url UrlListItem
+		err = rows.Scan(&url.ID, &url.UrlOriginal, &url.UrlShortened, &url.Slug, &url.CreatedAt)
+		if err != nil {
+			return []UrlListItem{}, err
+		}
+		urls = append(urls, url)
+	}
+
+	// Garantir que sempre retorne um array, mesmo que vazio
+	if urls == nil {
+		urls = []UrlListItem{}
+	}
+
+	return urls, nil
 }

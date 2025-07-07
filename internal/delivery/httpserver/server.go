@@ -10,6 +10,7 @@ import (
 	"url_shortening/internal/useCase/urlShortening"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
@@ -33,6 +34,10 @@ func (s *Server) handleURLGet(c *fiber.Ctx) error {
 	return urlShortening.GetUrl(c, s.Db, s.Redis, s.Config)
 }
 
+
+func (s *Server) handleURLList(c *fiber.Ctx) error {
+	return urlShortening.ListUserUrls(c, s.Db, s.Redis, s.Config)
+}
 // Auth handlers
 func (s *Server) handleAuthRegister(c *fiber.Ctx) error {
 	return auth.Register(c, s.Db, s.Redis, s.Config)
@@ -42,12 +47,28 @@ func (s *Server) handleAuthLogin(c *fiber.Ctx) error {
 	return auth.Login(c, s.Db, s.Redis, s.Config)
 }
 
+func (s *Server) handleAuthLogout(c *fiber.Ctx) error {
+	return auth.Logout(c, s.Db, s.Redis, s.Config)
+}
+
+func (s *Server) handleAuthMe(c *fiber.Ctx) error {
+	return auth.Me(c, s.Db, s.Redis, s.Config)
+}
+
 // Home handler
 func (s *Server) handleHome(c *fiber.Ctx) error {
 	return c.SendString("salve! 🤙")
 }
 
 func (s *Server) Router() {
+	// Configure CORS
+	s.App.Use(cors.New(cors.Config{
+		AllowOrigins:     s.Config.FRONTEND_URL,
+		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
+		AllowCredentials: true,
+	}))
+
 	// Home
 	s.App.Get("/", s.handleHome)
 
@@ -60,6 +81,8 @@ func (s *Server) Router() {
 
 	authGroup.Post("/register", s.handleAuthRegister)
 	authGroup.Post("/login", s.handleAuthLogin)
+	authGroup.Post("/logout", s.handleAuthLogout)
+	authGroup.Get("/me", s.handleAuthMe)
 
 	// Só para /url/register
 	s.App.Use("/register", limiter.New(limiter.Config{
@@ -72,6 +95,12 @@ func (s *Server) Router() {
 	})
 
 	s.App.Post("/register", s.handleURLRegister)
+
+	// Rota protegida para listar URLs do usuário
+	s.App.Get("/urls", func(c *fiber.Ctx) error {
+		return middleware.AuthMiddleware(c, s.Config)
+	}, s.handleURLList)
+
 	s.App.Get("/:urlShortened", s.handleURLGet)
 
 }
