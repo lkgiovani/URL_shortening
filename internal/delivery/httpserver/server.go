@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"time"
 	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"
@@ -9,6 +10,7 @@ import (
 	"url_shortening/internal/useCase/urlShortening"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
 type Server struct {
@@ -19,6 +21,20 @@ type Server struct {
 }
 
 func NewServer(app *fiber.App, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) (*Server, error) {
+
+	app.Use("/auth", limiter.New(
+		limiter.Config{
+			Max:        20,
+			Expiration: 1 * time.Minute,
+		},
+	))
+
+	app.Use("/url/register", limiter.New(
+		limiter.Config{
+			Max:        100,
+			Expiration: 1 * time.Minute,
+		},
+	))
 
 	return &Server{App: app, Db: db, Redis: redis, Config: config}, nil
 }
