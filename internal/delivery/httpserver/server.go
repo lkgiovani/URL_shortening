@@ -73,4 +73,5 @@ func (s *Server) Router() {
 
 	s.App.Post("/register", s.handleURLRegister)
 	s.App.Get("/:urlShortened", s.handleURLGet)
+
 }

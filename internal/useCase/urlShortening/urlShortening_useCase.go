@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
 	"url_shortening/infra/config/environment"
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"

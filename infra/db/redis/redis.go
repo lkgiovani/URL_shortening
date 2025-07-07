@@ -5,6 +5,7 @@ import (
 	"time"
 	"url_shortening/infra/config/environment"
 
+
 	"github.com/redis/go-redis/v9"
 )
 
