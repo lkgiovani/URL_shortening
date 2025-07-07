@@ -8,6 +8,7 @@ import (
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"
 	"url_shortening/internal/domain/repository/user_repo"
+	"url_shortening/pkg/cryptPkg"
 	"url_shortening/pkg/jwtpkg"
 
 	"github.com/go-playground/validator/v10"
@@ -47,11 +48,18 @@ func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *e
 		})
 	}
 
+	hashedPassword, err := cryptPkg.HashPassword(user.Password)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
 	repository := user_repo.NewUserRepository(db, config)
-	err = repository.RegisterUser(&user_repo.User{
+	id, email, err := repository.RegisterUser(&user_repo.User{
 		Name:     user.Name,
 		Email:    user.Email,
-		Password: user.Password,
+		Password: hashedPassword,
 	})
 
 	if err != nil {
@@ -61,7 +69,8 @@ func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *e
 	}
 
 	token, err := jwtpkg.GenerateToken(jwt.MapClaims{
-		"email": user.Email,
+		"id":    id,
+		"email": email,
 	}, config.JWT_SECRET)
 
 	if err != nil {

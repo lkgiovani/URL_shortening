@@ -9,20 +9,29 @@ import (
 	"url_shortening/infra/db/redis"
 	"url_shortening/internal/domain/repository/urlShortening_repo"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
+type RegisterRequest struct {
+	Url string `json:"url" validate:"required,url"`
+}
+
 func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) error {
 
-	type Request struct {
-		Url string `json:"url"`
-	}
-
+	validate := validator.New()
 	body := c.Body()
 
-	var request Request
+	var request RegisterRequest
 
-	if err := json.Unmarshal(body, &request); err != nil {
+	err := validate.Struct(request)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	if err = json.Unmarshal(body, &request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
@@ -30,7 +39,7 @@ func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *e
 
 	repository := urlShortening_repo.NewUrlShorteningRepository(db, config)
 
-	urlShortened, err := repository.RegisterUrl(&request.Url)
+	urlShortened, err := repository.RegisterUrl(&request.Url, c.Locals("id").(string))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

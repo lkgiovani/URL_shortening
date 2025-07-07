@@ -18,6 +18,13 @@ func NewRedis(config *environment.Config) (*Redis, error) {
 		return nil, err
 	}
 
+	opt.PoolSize = 10
+	opt.MinIdleConns = 5
+	opt.MaxRetries = 3
+	opt.DialTimeout = 5 * time.Second
+	opt.ReadTimeout = 3 * time.Second
+	opt.WriteTimeout = 3 * time.Second
+
 	return &Redis{Client: redis.NewClient(opt)}, nil
 }
 

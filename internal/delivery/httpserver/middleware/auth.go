@@ -23,6 +23,7 @@ func AuthMiddleware(c *fiber.Ctx, config *environment.Config) error {
 	}
 
 	c.Locals("email", claims["email"])
+	c.Locals("id", claims["id"])
 
 	return c.Next()
 }

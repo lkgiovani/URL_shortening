@@ -8,6 +8,7 @@ import (
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"
 	"url_shortening/internal/domain/repository/user_repo"
+	"url_shortening/pkg/cryptPkg"
 	"url_shortening/pkg/jwtpkg"
 
 	"github.com/go-playground/validator/v10"
@@ -53,13 +54,14 @@ func Login(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *envi
 		})
 	}
 
-	if user.Password != response.Password {
+	if !cryptPkg.ComparePassword(user.Password, response.Password) {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "email or password is incorrect",
 		})
 	}
 
 	token, err := jwtpkg.GenerateToken(jwt.MapClaims{
+		"id":    response.ID,
 		"email": user.Email,
 	}, config.JWT_SECRET)
 

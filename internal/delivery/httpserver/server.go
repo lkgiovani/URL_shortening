@@ -41,7 +41,7 @@ func NewServer(app *fiber.App, db *postgres.Postgres, redis *redis.Redis, config
 
 func (s *Server) Router() {
 	s.App.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World 👋!")
+		return c.SendString("salve! 🤙")
 	})
 
 	s.App.Post("/url/register", func(c *fiber.Ctx) error {

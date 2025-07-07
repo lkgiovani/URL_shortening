@@ -27,32 +27,32 @@ func NewUserRepository(db *postgres.Postgres, config *environment.Config) *UserR
 	return &UserRepository{db: db, config: config}
 }
 
-func (r *UserRepository) RegisterUser(user *User) error {
+func (r *UserRepository) RegisterUser(user *User) (string, string, error) {
 
 	uniqueID, err := uuid.NewV7()
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	var count int
 	err = r.db.Db.Raw(`SELECT COUNT(*) FROM users WHERE email = ?`, user.Email).Row().Scan(&count)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	if count > 0 {
-		return errors.New("user already exists")
+		return "", "", errors.New("user already exists")
 	}
 
 	query := `INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)`
 	response, err := r.db.Db.Raw(query, uniqueID, user.Name, user.Email, user.Password).Rows()
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	defer response.Close()
 
-	return nil
+	return uniqueID.String(), user.Email, nil
 }
 
 func (r *UserRepository) GetUserByEmail(email string) (User, error) {
