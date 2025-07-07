@@ -65,7 +65,8 @@ func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *e
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": urlShortened.UrlShortened,
+		"shortUrl":    urlShortened.UrlShortened,
+		"originalUrl": urlShortened.UrlOriginal,
 	})
 }
 

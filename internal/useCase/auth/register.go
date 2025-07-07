@@ -83,9 +83,17 @@ func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *e
 	cookie.Name = "token"
 	cookie.Value = token
 	cookie.Expires = time.Now().Add(24 * time.Hour)
+	cookie.HTTPOnly = true
+	cookie.Secure = false // Set to true in production with HTTPS
+	cookie.SameSite = "Lax"
 	c.Cookie(cookie)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "User registered successfully",
+		"user": fiber.Map{
+			"id":    id,
+			"name":  user.Name,
+			"email": email,
+		},
 	})
 }

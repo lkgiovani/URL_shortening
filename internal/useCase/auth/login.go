@@ -75,9 +75,17 @@ func Login(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *envi
 	cookie.Name = "token"
 	cookie.Value = token
 	cookie.Expires = time.Now().Add(24 * time.Hour)
+	cookie.HTTPOnly = true
+	cookie.Secure = false // Set to true in production with HTTPS
+	cookie.SameSite = "Lax"
 	c.Cookie(cookie)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Login successful",
+		"user": fiber.Map{
+			"id":    response.ID,
+			"name":  response.Name,
+			"email": response.Email,
+		},
 	})
 }

@@ -17,7 +17,8 @@ type Config struct {
 	REDIS                struct {
 		Address string
 	}
-	JWT_SECRET string
+	JWT_SECRET   string
+	FRONTEND_URL string
 }
 
 func NewConfig() (*Config, error) {
@@ -52,6 +53,11 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
+	frontendUrl, err := getString("FRONTEND_URL", "Error loading Frontend URL")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
 		HTTP: struct {
 			Url  string
@@ -71,7 +77,8 @@ func NewConfig() (*Config, error) {
 		}{
 			Address: redisAddress,
 		},
-		JWT_SECRET: jwtSecret,
+		JWT_SECRET:   jwtSecret,
+		FRONTEND_URL: frontendUrl,
 	}, nil
 }
 
