@@ -17,6 +17,7 @@ type Config struct {
 	REDIS                struct {
 		Address string
 	}
+	JWT_SECRET string
 }
 
 func NewConfig() (*Config, error) {
@@ -46,6 +47,11 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
+	jwtSecret, err := getString("JWT_SECRET", "Error loading JWT Secret")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
 		HTTP: struct {
 			Url  string
@@ -65,6 +71,7 @@ func NewConfig() (*Config, error) {
 		}{
 			Address: redisAddress,
 		},
+		JWT_SECRET: jwtSecret,
 	}, nil
 }
 
