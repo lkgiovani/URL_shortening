@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"sort"
-	"url_shortening/config/environment"
+	"url_shortening/infra/config/environment"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

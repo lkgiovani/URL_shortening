@@ -3,7 +3,7 @@ package redis
 import (
 	"context"
 	"time"
-	"url_shortening/config/environment"
+	"url_shortening/infra/config/environment"
 
 	"github.com/redis/go-redis/v9"
 )

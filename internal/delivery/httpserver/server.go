@@ -2,7 +2,7 @@ package httpserver
 
 import (
 	"time"
-	"url_shortening/config/environment"
+	"url_shortening/infra/config/environment"
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"
 	"url_shortening/internal/delivery/httpserver/middleware"
