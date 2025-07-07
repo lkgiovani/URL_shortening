@@ -1,4 +1,4 @@
-package urlShortening
+package urlShortening_repo
 
 import (
 	"fmt"

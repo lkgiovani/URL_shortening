@@ -9,7 +9,7 @@ import (
 	"url_shortening/infra/db/redis"
 	"url_shortening/internal/delivery/httpserver"
 
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
 

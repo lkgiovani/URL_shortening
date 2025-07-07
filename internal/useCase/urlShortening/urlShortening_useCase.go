@@ -7,12 +7,12 @@ import (
 	"url_shortening/config/environment"
 	"url_shortening/infra/db/postgres"
 	"url_shortening/infra/db/redis"
-	"url_shortening/internal/domain/repository/urlShortening"
+	"url_shortening/internal/domain/repository/urlShortening_repo"
 
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 )
 
-func Register(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) error {
+func Register(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) error {
 
 	type Request struct {
 		Url string `json:"url"`
@@ -28,7 +28,7 @@ func Register(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *en
 		})
 	}
 
-	repository := urlShortening.NewUrlShorteningRepository(db, config)
+	repository := urlShortening_repo.NewUrlShorteningRepository(db, config)
 
 	urlShortened, err := repository.RegisterUrl(&request.Url)
 	if err != nil {
@@ -49,16 +49,16 @@ func Register(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *en
 	})
 }
 
-func GetUrl(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) error {
+func GetUrl(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *environment.Config) error {
 	urlShortened := c.Params("urlShortened")
 
 	url, err := redis.Get(urlShortened)
 	if err == nil {
-		c.Redirect().Status(302).To(url)
+		c.Redirect(url, 302)
 		return nil
 	}
 
-	repository := urlShortening.NewUrlShorteningRepository(db, config)
+	repository := urlShortening_repo.NewUrlShorteningRepository(db, config)
 	urlOriginal, err := repository.GetUrl(urlShortened)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -73,6 +73,6 @@ func GetUrl(c fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *envi
 		})
 	}
 
-	c.Redirect().Status(302).To(url)
+	c.Redirect(url, 302)
 	return nil
 }
