@@ -82,6 +82,6 @@ func GetUrl(c *fiber.Ctx, db *postgres.Postgres, redis *redis.Redis, config *env
 		})
 	}
 
-	c.Redirect(url, 302)
+	c.Redirect(urlOriginal.UrlOriginal, 302)
 	return nil
 }
