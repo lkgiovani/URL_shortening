@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"url_shortening/config/environment"
+	"url_shortening/infra/config/environment"
 	"url_shortening/pkg/jwtpkg"
 
 	"github.com/gofiber/fiber/v2"

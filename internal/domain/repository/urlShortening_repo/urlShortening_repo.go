@@ -1,7 +1,7 @@
 package urlShortening_repo
 
 import (
-	"url_shortening/config/environment"
+	"url_shortening/infra/config/environment"
 	"url_shortening/infra/db/postgres"
 
 	"github.com/google/uuid"
