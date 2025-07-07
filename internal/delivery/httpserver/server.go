@@ -34,10 +34,10 @@ func (s *Server) handleURLGet(c *fiber.Ctx) error {
 	return urlShortening.GetUrl(c, s.Db, s.Redis, s.Config)
 }
 
+
 func (s *Server) handleURLList(c *fiber.Ctx) error {
 	return urlShortening.ListUserUrls(c, s.Db, s.Redis, s.Config)
 }
-
 // Auth handlers
 func (s *Server) handleAuthRegister(c *fiber.Ctx) error {
 	return auth.Register(c, s.Db, s.Redis, s.Config)

@@ -1,7 +1,6 @@
 package urlShortening_repo
 
 import (
-	"fmt"
 	"url_shortening/infra/config/environment"
 	"url_shortening/infra/db/postgres"
 
